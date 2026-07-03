@@ -1009,7 +1009,27 @@ body {
   padding: 30px 24px 50px;
   background-color: transparent;
   animation: apple-fade-in 0.4s var(--ease);
+  position: relative;
   gap: 0;
+}
+
+.login-brand {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+  animation: apple-fade-in 0.8s var(--ease) both;
+}
+
+.brand-name {
+  font-family: var(--font);
+  font-size: 20px;
+  font-weight: 400;
+  color: #a2a2a6;
+  letter-spacing: -0.2px;
 }
 
 .login-hero {
