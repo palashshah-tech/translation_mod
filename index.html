@@ -10,7 +10,26 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <div id="app">
+  <div id="login-container" style="display: none;">
+    <div class="login-card">
+      <div class="login-logo">翻</div>
+      <h2>Translation Moderator</h2>
+      <p>Sign in with your corporate @xiberlinc.one account to continue.</p>
+      <div class="login-error" id="login-error" style="display: none;"></div>
+      <button class="btn btn-primary btn-login" id="btn-google-login">
+        <svg class="google-icon" viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.62 14.99 1 12 1 7.35 1 3.39 3.65 1.5 7.5l3.86 3C6.31 7.55 9.01 5.04 12 5.04z"/>
+          <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.34H12v4.58h6.48c-.28 1.48-1.12 2.74-2.38 3.58l3.69 2.87c2.16-1.98 3.7-4.91 3.7-8.69z"/>
+          <path fill="#FBBC05" d="M5.36 14.68c-.24-.72-.38-1.49-.38-2.28s.14-1.56.38-2.28L1.5 7.12C.54 9.09 0 11.27 0 13.56c0 2.29.54 4.47 1.5 6.44l3.86-3.32z"/>
+          <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.69-2.87c-1.03.69-2.34 1.1-3.95 1.1-3.07 0-5.77-2.51-6.7-5.46L1.75 16.2C3.65 20.08 7.61 23 12 23z"/>
+        </svg>
+        Sign in with Google
+      </button>
+      <div class="login-footer">Protected by Xiberlinc Authentication</div>
+    </div>
+  </div>
+
+  <div id="app" style="display: none;">
     <!-- Header -->
     <header id="header">
       <div class="header-left">

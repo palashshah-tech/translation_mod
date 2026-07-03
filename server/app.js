@@ -10,6 +10,8 @@ import cors from 'cors';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import jwt from 'jsonwebtoken';
+import jwksClient from 'jwks-rsa';
 
 import { getFileContent, commitTranslations, getOpenTranslationPRs } from './github.js';
 import { parseTranslationFile, reconstructFile } from './parser.js';
@@ -20,6 +22,61 @@ const __dirname = dirname(__filename);
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
+
+// Configure JWKS client to fetch Firebase public keys dynamically
+const client = jwksClient({
+  jwksUri: 'https://www.googleapis.com/serviceaccounts/jwt/securetoken.google.com/translation-61e55',
+  cache: true,
+  rateLimit: true,
+  jwksRequestsPerMinute: 5
+});
+
+function getKey(header, callback) {
+  client.getSigningKey(header.kid, function(err, key) {
+    if (err) return callback(err);
+    const signingKey = key.getPublicKey();
+    callback(null, signingKey);
+  });
+}
+
+// Authentication middleware
+async function authMiddleware(req, res, next) {
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  if (!projectId) {
+    console.warn('⚠️ FIREBASE_PROJECT_ID is not set in env. Skipping API token verification.');
+    return next();
+  }
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized: Missing or invalid token' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  client.jwksUri = `https://www.googleapis.com/serviceaccounts/jwt/securetoken.google.com/${projectId}`;
+
+  jwt.verify(token, getKey, {
+    audience: projectId,
+    issuer: `https://securetoken.google.com/${projectId}`,
+    algorithms: ['RS256']
+  }, (err, decoded) => {
+    if (err) {
+      console.error('Token verification failed:', err.message);
+      return res.status(401).json({ error: `Unauthorized: Token verification failed (${err.message})` });
+    }
+
+    const email = decoded.email || '';
+    if (!email.endsWith('@xiberlinc.one')) {
+      return res.status(403).json({ error: 'Forbidden: Access restricted to @xiberlinc.one accounts' });
+    }
+
+    req.user = decoded;
+    next();
+  });
+}
+
+// Protect all /api/ endpoints with authMiddleware
+app.use('/api', authMiddleware);
 
 // Load project configuration
 const configPath = join(__dirname, '..', 'config.json');

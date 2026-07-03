@@ -2,10 +2,12 @@
  * main.js — Translation Moderator frontend
  *
  * Handles project selection, translation table rendering, inline editing,
- * and committing changes back to GitHub via the Express API.
+ * Google Auth via Firebase, and committing changes back to GitHub via Express.
  */
 
 import './style.css';
+import { auth, googleProvider } from './firebase.js';
+import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 
 // ── Custom SVG Logos ──────────────────────────────────────────────────
 const PROJECT_LOGOS = {
@@ -65,11 +67,18 @@ const state = {
   filterEdited: false,
   filterMissing: false,
   loading: false,
+  userToken: null,       // Firebase ID Token passed in API requests
+  currentUser: null      // User profile info
 };
 
 // ── DOM Refs ─────────────────────────────────────────────────────────
 const $ = (sel) => document.querySelector(sel);
 const dom = {
+  app: $('#app'),
+  loginContainer: $('#login-container'),
+  loginError: $('#login-error'),
+  btnGoogleLogin: $('#btn-google-login'),
+  headerRight: $('.header-right'),
   statsBar: $('#stats-bar'),
   statTotal: $('#stat-total'),
   statTranslated: $('#stat-translated'),
@@ -96,15 +105,22 @@ const dom = {
   modalCancel: $('#modal-cancel'),
   modalConfirm: $('#modal-confirm'),
   logo: $('.logo'),
-  statusBadge: $('#status-badge'),
   toast: $('#toast'),
   toastContent: $('#toast-content'),
 };
 
 // ── API ──────────────────────────────────────────────────────────────
 async function api(path, options = {}) {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (state.userToken) {
+    headers['Authorization'] = `Bearer ${state.userToken}`;
+  }
+
   const res = await fetch(`/api${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     ...options,
   });
   const data = await res.json();
@@ -112,11 +128,96 @@ async function api(path, options = {}) {
   return data;
 }
 
+// ── Authentication ───────────────────────────────────────────────────
+function setupAuth() {
+  dom.btnGoogleLogin.addEventListener('click', async () => {
+    dom.loginError.style.display = 'none';
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (err) {
+      console.error(err);
+      showLoginError(`Login failed: ${err.message}`);
+    }
+  });
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const email = user.email || '';
+      
+      // Accept ONLY @xiberlinc.one email addresses
+      if (!email.endsWith('@xiberlinc.one')) {
+        showLoginError('Access denied. Only @xiberlinc.one accounts are permitted.');
+        await signOut(auth);
+        handleSignOutState();
+        return;
+      }
+
+      try {
+        state.currentUser = user;
+        state.userToken = await user.getIdToken();
+        
+        renderHeaderProfile(user);
+        handleSignInState();
+        
+        // Load the projects home dashboard
+        await loadProjects();
+      } catch (err) {
+        console.error(err);
+        showLoginError('Session initialization failed. Please try again.');
+        await signOut(auth);
+        handleSignOutState();
+      }
+    } else {
+      handleSignOutState();
+    }
+  });
+}
+
+function renderHeaderProfile(user) {
+  const initial = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
+  dom.headerRight.innerHTML = `
+    <div class="user-profile">
+      <div class="user-avatar">${initial}</div>
+      <span class="user-email">${user.email}</span>
+      <button class="btn-signout" id="btn-signout">Sign Out</button>
+    </div>
+  `;
+  
+  // Re-bind signout listener since innerHTML replaced it
+  $('#btn-signout').addEventListener('click', () => signOut(auth));
+}
+
+function handleSignInState() {
+  dom.loginContainer.style.display = 'none';
+  dom.loginError.style.display = 'none';
+  dom.app.style.display = 'flex';
+}
+
+function handleSignOutState() {
+  state.currentUser = null;
+  state.userToken = null;
+  state.activeProject = null;
+  state.translationData = null;
+  state.edits = {};
+  
+  dom.app.style.display = 'none';
+  dom.loginContainer.style.display = 'flex';
+}
+
+function showLoginError(msg) {
+  dom.loginError.textContent = msg;
+  dom.loginError.style.display = 'block';
+}
+
 // ── Project Handlers ─────────────────────────────────────────────────
 async function loadProjects() {
-  const { projects } = await api('/projects');
-  state.projects = projects;
-  renderProjectCards();
+  try {
+    const { projects } = await api('/projects');
+    state.projects = projects;
+    renderProjectCards();
+  } catch (err) {
+    showError('Load failed', `Could not fetch configured projects: ${err.message}`);
+  }
 }
 
 function renderProjectCards() {
@@ -155,7 +256,6 @@ async function selectProject(id) {
 async function loadTranslations(projectId) {
   showView('loading');
   state.loading = true;
-  setStatus('Loading…', 'loading');
 
   try {
     const data = await api(`/projects/${projectId}/translations`);
@@ -165,10 +265,8 @@ async function loadTranslations(projectId) {
     showView('table');
     updateStats();
     renderTable();
-    setStatus('Ready', 'ready');
   } catch (err) {
     showError('Failed to load translations', err.message);
-    setStatus('Error', 'error');
   } finally {
     state.loading = false;
   }
@@ -356,19 +454,6 @@ function showError(title, message) {
   showView('error');
 }
 
-function setStatus(text, type) {
-  const badge = dom.statusBadge;
-  badge.querySelector('.status-text').textContent = text;
-  const dot = badge.querySelector('.status-dot');
-
-  dot.style.background = {
-    ready: 'var(--success)',
-    loading: 'var(--warning)',
-    error: 'var(--danger)',
-    saving: 'var(--accent)',
-  }[type] || 'var(--success)';
-}
-
 // ── Commit Modal ─────────────────────────────────────────────────────
 function openCommitModal() {
   const changedKeys = Object.keys(state.edits);
@@ -395,7 +480,6 @@ function closeModal() {
 
 async function confirmCommit() {
   closeModal();
-  setStatus('Committing…', 'saving');
   dom.btnSave.disabled = true;
 
   try {
@@ -416,7 +500,6 @@ async function confirmCommit() {
     await loadTranslations(state.activeProject.id);
   } catch (err) {
     showToast(`Commit failed: ${err.message}`, 'error');
-    setStatus('Error', 'error');
     dom.btnSave.disabled = false;
   }
 }
@@ -461,10 +544,12 @@ function escapeAttr(str) {
 // ── Event Bindings ───────────────────────────────────────────────────
 function bindEvents() {
   dom.logo.addEventListener('click', () => {
-    state.activeProject = null;
-    state.edits = {};
-    state.translationData = null;
-    showView('projects');
+    if (state.currentUser) {
+      state.activeProject = null;
+      state.edits = {};
+      state.translationData = null;
+      showView('projects');
+    }
   });
 
   // Search
@@ -510,13 +595,7 @@ function bindEvents() {
 // ── Init ─────────────────────────────────────────────────────────────
 async function init() {
   bindEvents();
-  showView('projects');
-
-  try {
-    await loadProjects();
-  } catch (err) {
-    showError('Failed to connect', `Could not reach the API server. Is it running? (${err.message})`);
-  }
+  setupAuth();
 }
 
 init();
