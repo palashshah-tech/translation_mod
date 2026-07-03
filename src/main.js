@@ -57,6 +57,88 @@ const STATUS_ICONS = {
   `
 };
 
+// ── i18n Dictionary ──────────────────────────────────────────────────
+const UI_TEXT = {
+  ja: {
+    appName: '翻訳モデレーター',
+    signIn: 'Googleでサインイン',
+    signOut: 'サインアウト',
+    ready: '準備完了',
+    totalKeys: '総キー数',
+    translated: '翻訳済み',
+    editedNow: '編集中',
+    searchPlaceholder: 'キーまたはテキストで検索…',
+    showEdited: '編集済みのみ',
+    showMissing: '未翻訳のみ',
+    resetAll: 'リセット',
+    commitPR: 'コミット & PR作成',
+    projectsTitle: 'プロジェクト',
+    projectsSub: '翻訳を管理するプロジェクトを選択してください',
+    loadingTranslations: 'GitHubから翻訳データを読み込み中…',
+    colKey: 'キー',
+    colEn: '英語',
+    colAI: 'AI 日本語',
+    colHuman: '人間レビュー',
+    colStatus: '状態',
+    commitTitle: '翻訳をコミット',
+    cancel: 'キャンセル',
+    createPR: 'PR作成',
+    langToggleLabel: 'EN',
+  },
+  en: {
+    appName: 'Translation Moderator',
+    signIn: 'Sign in with Google',
+    signOut: 'Sign Out',
+    ready: 'Ready',
+    totalKeys: 'Total Keys',
+    translated: 'Translated',
+    editedNow: 'Editing',
+    searchPlaceholder: 'Filter by key or text…',
+    showEdited: 'Show edited only',
+    showMissing: 'Show missing only',
+    resetAll: 'Reset all',
+    commitPR: 'Commit & Create PR',
+    projectsTitle: 'Projects',
+    projectsSub: 'Select a project to moderate translations',
+    loadingTranslations: 'Loading translations from GitHub…',
+    colKey: 'Key',
+    colEn: 'English',
+    colAI: 'AI Japanese',
+    colHuman: 'Human Review',
+    colStatus: 'Status',
+    commitTitle: 'Commit Translations',
+    cancel: 'Cancel',
+    createPR: 'Create PR',
+    langToggleLabel: 'JP',
+  }
+};
+
+function t(key) {
+  return UI_TEXT[state.lang]?.[key] ?? UI_TEXT.ja[key] ?? key;
+}
+
+function applyLang() {
+  const lang = state.lang;
+  document.documentElement.lang = lang;
+  localStorage.setItem('lang', lang);
+
+  // Update all data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    el.textContent = t(key);
+  });
+
+  // Update placeholder attributes
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.dataset.i18nPlaceholder;
+    el.placeholder = t(key);
+  });
+
+  // Update lang toggle button
+  const toggleBtn = $('#btn-lang-toggle');
+  if (toggleBtn) toggleBtn.textContent = t('langToggleLabel');
+}
+
 // ── State ────────────────────────────────────────────────────────────
 const state = {
   projects: [],
@@ -68,7 +150,8 @@ const state = {
   filterMissing: false,
   loading: false,
   userToken: null,       // Firebase ID Token passed in API requests
-  currentUser: null      // User profile info
+  currentUser: null,     // User profile info
+  lang: localStorage.getItem('lang') || 'ja',
 };
 
 // ── DOM Refs ─────────────────────────────────────────────────────────
@@ -78,6 +161,7 @@ const dom = {
   loginContainer: $('#login-container'),
   loginError: $('#login-error'),
   btnGoogleLogin: $('#btn-google-login'),
+  btnLangToggle: $('#btn-lang-toggle'),
   headerRight: $('.header-right'),
   statsBar: $('#stats-bar'),
   statTotal: $('#stat-total'),
@@ -585,6 +669,14 @@ function bindEvents() {
     if (e.target === dom.modalOverlay) closeModal();
   });
 
+  // Language toggle
+  if (dom.btnLangToggle) {
+    dom.btnLangToggle.addEventListener('click', () => {
+      state.lang = state.lang === 'ja' ? 'en' : 'ja';
+      applyLang();
+    });
+  }
+
   // Keyboard shortcut: Cmd/Ctrl+S to save
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
@@ -596,6 +688,7 @@ function bindEvents() {
 
 // ── Init ─────────────────────────────────────────────────────────────
 async function init() {
+  applyLang();
   bindEvents();
   setupAuth();
 }

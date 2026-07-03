@@ -131,9 +131,10 @@ body {
   height: var(--nav-h);
   padding: 0 32px;
   border-bottom: 1px solid var(--border);
-  background: rgba(14, 14, 17, 0.7);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
+  background: rgba(10, 10, 13, 0.85);
+  backdrop-filter: blur(40px) saturate(1.8);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8);
+  box-shadow: 0 1px 0 rgba(255, 159, 10, 0.12), 0 4px 24px rgba(0, 0, 0, 0.3);
 }
 
 .header-left {
@@ -175,8 +176,8 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 22%; /* Squircle */
-  background: linear-gradient(135deg, #007aff, #30d158);
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+  background: linear-gradient(135deg, #ff9f0a, #ff6b00);
+  box-shadow: 0 2px 10px rgba(255, 159, 10, 0.35);
 }
 
 .logo-text h1 {
@@ -208,7 +209,26 @@ body {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--success);
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+/* Language Toggle */
+.btn-lang {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  background: rgba(255, 159, 10, 0.08);
+  color: var(--accent);
+  border: 1px solid rgba(255, 159, 10, 0.2);
+  border-radius: 100px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-lang:hover {
+  background: rgba(255, 159, 10, 0.15);
+  border-color: rgba(255, 159, 10, 0.4);
 }
 
 /* ═══════════════════════════════════
@@ -220,9 +240,11 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 16px 40px;
+  padding: 14px 40px;
   border-bottom: 1px solid var(--border);
-  background: var(--bg-base);
+  background: rgba(10, 10, 13, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   animation: apple-fade-up 0.4s var(--ease) both;
 }
 
@@ -234,8 +256,8 @@ body {
 
 .stat-value {
   font-size: 22px;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-weight: 700;
+  color: var(--accent);
   letter-spacing: -0.5px;
 }
 
@@ -380,7 +402,7 @@ body {
   color: #ffffff;
 }
 .btn-primary:hover:not(:disabled) {
-  background: #3595ff;
+  filter: brightness(1.12);
 }
 .btn-primary:active:not(:disabled) {
   transform: scale(0.98);
@@ -460,18 +482,30 @@ body {
   max-width: 1000px;
   width: 100%;
   margin: 0 auto;
-  padding: 60px 40px;
+  padding: 48px 40px;
   animation: apple-fade-up 0.5s var(--ease) both;
 }
 
-.projects-home::before {
-  content: "Projects";
-  display: block;
-  font-size: 24px;
+.projects-header {
+  margin-bottom: 32px;
+}
+
+.projects-heading {
+  font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.5px;
-  margin-bottom: 24px;
   color: var(--text-primary);
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, #ffffff, rgba(255,255,255,0.6));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.projects-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 400;
 }
 
 .projects-grid {
@@ -490,15 +524,17 @@ body {
   padding: 24px;
   cursor: pointer;
   position: relative;
-  transition: background-color 0.2s, border-color 0.2s, transform 0.2s var(--ease), box-shadow 0.2s;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: background-color 0.2s, border-color 0.25s, transform 0.25s var(--ease), box-shadow 0.25s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .project-card:hover {
   background-color: var(--bg-card-hover);
-  border-color: var(--border-active);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 159, 10, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(255, 159, 10, 0.12), 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .project-card-disabled {
@@ -576,6 +612,7 @@ body {
 .project-card:hover .project-card-arrow {
   opacity: 1;
   transform: translateX(0);
+  color: var(--accent);
 }
 
 .project-card-badge {
@@ -969,7 +1006,7 @@ body {
   align-items: center;
   justify-content: space-between;
   min-height: 100vh;
-  padding: 80px 24px;
+  padding: 60px 24px 130px;
   background-color: transparent;
   animation: apple-fade-in 0.4s var(--ease);
   gap: 0;
