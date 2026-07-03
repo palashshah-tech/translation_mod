@@ -961,18 +961,77 @@ body {
   z-index: 1;
 }
 
-/* ── Login Screen — minimal floating button ── */
+/* ── Login Screen — minimal floating layout ── */
 
 #login-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   min-height: 100vh;
-  padding: 0 24px 80px;
+  padding: 80px 24px;
   background-color: transparent;
   animation: apple-fade-in 0.4s var(--ease);
+  gap: 0;
+}
+
+.login-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 12px;
+  margin-top: 60px;
+  animation: apple-fade-up 0.6s var(--ease) both;
+}
+
+.login-title {
+  font-family: var(--font-jp);
+  font-size: clamp(72px, 14vw, 128px);
+  font-weight: 300;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-shadow: 0 0 80px rgba(255, 255, 255, 0.15);
+}
+
+.login-subtitle {
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* login bottom actions */
+#login-container .login-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  animation: apple-fade-up 0.7s var(--ease) 0.1s both;
+}
+
+/* ── Orange theme override for in-app pages ── */
+body.in-app {
+  --accent:         #ff9f0a;
+  --accent-dim:     rgba(255, 159, 10, 0.15);
+  --accent-bg:      rgba(255, 159, 10, 0.08);
+}
+
+/* Hide Spline when in-app */
+body.in-app #spline-canvas-container {
+  display: none;
+}
+
+/* Solid background for in-app pages */
+body.in-app {
+  background-color: var(--bg-deep);
+}
+
+.login-card {
+  /* legacy, unused - kept for reference */
+  display: none;
 }
 
 .login-error {
@@ -990,8 +1049,6 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
-
-.login-card {
   width: 100%;
   max-width: 380px;
   background: var(--bg-card);

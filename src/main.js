@@ -188,12 +188,14 @@ function renderHeaderProfile(user) {
 }
 
 function handleSignInState() {
+  document.body.classList.add('in-app');
   dom.loginContainer.style.display = 'none';
   dom.loginError.style.display = 'none';
   dom.app.style.display = 'flex';
 }
 
 function handleSignOutState() {
+  document.body.classList.remove('in-app');
   state.currentUser = null;
   state.userToken = null;
   state.activeProject = null;
