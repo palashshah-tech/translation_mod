@@ -1024,12 +1024,10 @@ body {
   animation: apple-fade-in 0.8s var(--ease) both;
 }
 
-.brand-name {
-  font-family: var(--font);
-  font-size: 20px;
-  font-weight: 400;
-  color: #a2a2a6;
-  letter-spacing: -0.2px;
+.brand-image {
+  height: 38px;
+  width: auto;
+  display: block;
 }
 
 .login-hero {
