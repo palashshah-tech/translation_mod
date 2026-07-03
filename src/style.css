@@ -1006,7 +1006,7 @@ body {
   align-items: center;
   justify-content: space-between;
   min-height: 100vh;
-  padding: 30px 24px 130px;
+  padding: 30px 24px 50px;
   background-color: transparent;
   animation: apple-fade-in 0.4s var(--ease);
   gap: 0;
