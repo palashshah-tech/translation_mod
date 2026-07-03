@@ -25,7 +25,7 @@ app.use(express.json({ limit: '5mb' }));
 
 // Configure JWKS client to fetch Firebase public keys dynamically
 const client = jwksClient({
-  jwksUri: 'https://www.googleapis.com/serviceaccounts/jwt/securetoken.google.com/translation-61e55',
+  jwksUri: 'https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com',
   cache: true,
   rateLimit: true,
   jwksRequestsPerMinute: 5
@@ -53,7 +53,6 @@ async function authMiddleware(req, res, next) {
   }
 
   const token = authHeader.split(' ')[1];
-  client.jwksUri = `https://www.googleapis.com/serviceaccounts/jwt/securetoken.google.com/${projectId}`;
 
   jwt.verify(token, getKey, {
     audience: projectId,
