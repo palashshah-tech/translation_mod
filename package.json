@@ -1,0 +1,23 @@
+{
+  "name": "translations-moderator",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Org-wide translation moderator for Xiberlinc projects",
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,green \"node server/index.js\" \"vite\"",
+    "server": "node server/index.js",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "vite": "^6.3.5"
+  }
+}

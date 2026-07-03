@@ -1,0 +1,28 @@
+{
+  "projects": [
+    {
+      "id": "xiberlinc",
+      "name": "Xiberlinc Products App",
+      "description": "Main product showcase & dashboard",
+      "repo": "palashshah-tech/xiberlinc",
+      "branch": "main",
+      "translationFile": "src/translations.js",
+      "variableName": "translations",
+      "sourceLocale": "en",
+      "targetLocale": "jp",
+      "icon": "xiberlinc"
+    },
+    {
+      "id": "working-memory",
+      "name": "Working Memory Assessment",
+      "description": "Cognitive profiling task suite",
+      "repo": "palashshah-tech/working_memory",
+      "branch": "main",
+      "translationFile": "src/utils/i18n.js",
+      "variableName": "DICTIONARY",
+      "sourceLocale": "en",
+      "targetLocale": "ja",
+      "icon": "working-memory"
+    }
+  ]
+}
