@@ -8,12 +8,12 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Apple System Palette (Dark Mode) */
-  --bg-deep:        #000000;
-  --bg-base:        #0e0e11;
-  --bg-card:        #1c1c1e;
-  --bg-card-hover:  #2c2c2e;
-  --bg-input:       #252528;
+  /* Apple System Palette (Dark Mode - Translucent Glass) */
+  --bg-deep:        #050508;
+  --bg-base:        rgba(14, 14, 17, 0.35);
+  --bg-card:        rgba(28, 28, 30, 0.45);
+  --bg-card-hover:  rgba(44, 44, 46, 0.55);
+  --bg-input:       rgba(255, 255, 255, 0.06);
   --border:         rgba(255, 255, 255, 0.08);
   --border-active:  rgba(255, 255, 255, 0.16);
 
@@ -65,11 +65,28 @@ body {
   overflow-y: scroll;
 }
 
+#spline-canvas-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background-color: var(--bg-deep);
+}
+
+#spline-canvas-container spline-viewer {
+  width: 100%;
+  height: 100%;
+}
+
 #app {
   position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  z-index: 1;
 }
 
 ::selection { background: var(--accent-dim); }
@@ -933,7 +950,7 @@ body {
   justify-content: center;
   min-height: 100vh;
   padding: 24px;
-  background-color: var(--bg-deep);
+  background-color: transparent;
   animation: apple-fade-in 0.4s var(--ease);
 }
 
@@ -946,6 +963,8 @@ body {
   padding: 40px 32px;
   text-align: center;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(30px) saturate(1.8);
+  -webkit-backdrop-filter: blur(30px) saturate(1.8);
   animation: apple-fade-up 0.5s var(--ease) both;
 }
 
