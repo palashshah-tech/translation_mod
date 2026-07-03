@@ -76,10 +76,8 @@ body {
   background-color: var(--bg-deep);
 }
 
-#spline-canvas-container spline-viewer {
-  width: 100%;
-  height: 100%;
-}
+
+
 
 #app {
   position: relative;
@@ -941,17 +939,56 @@ body {
   }
 }
 
-/* ── Login Screen (Apple Dashboard styling) ── */
+/* ── Spline zoom ── */
+#spline-canvas-container spline-viewer {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transform: scale(1.45);
+  transform-origin: center center;
+}
+
+/* Hide "Built with Spline" badge */
+#spline-canvas-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 180px;
+  height: 52px;
+  background: var(--bg-deep);
+  z-index: 1;
+}
+
+/* ── Login Screen — minimal floating button ── */
 
 #login-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   min-height: 100vh;
-  padding: 24px;
+  padding: 0 24px 80px;
   background-color: transparent;
   animation: apple-fade-in 0.4s var(--ease);
+  gap: 12px;
+}
+
+.login-error {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--danger);
+  background: rgba(255, 69, 58, 0.12);
+  border: 1px solid rgba(255, 69, 58, 0.25);
+  padding: 10px 16px;
+  border-radius: 10px;
+  text-align: center;
+  line-height: 1.4;
+  max-width: 320px;
+  animation: apple-fade-in 0.2s var(--ease);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .login-card {
@@ -998,56 +1035,37 @@ body {
 }
 
 .btn-login {
-  width: 100%;
-  padding: 12px 18px;
-  font-size: 13.5px;
+  width: 320px;
+  padding: 14px 24px;
+  font-size: 14px;
   font-weight: 500;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
-  border-radius: var(--r-btn);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+  transition: background 0.2s, border-color 0.2s, transform 0.1s, box-shadow 0.2s;
+  letter-spacing: 0.01em;
 }
 
 .btn-login:hover {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
 .btn-login:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .google-icon {
   flex-shrink: 0;
-}
-
-.login-error {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--danger);
-  background: var(--danger-bg);
-  border: 1px solid rgba(255, 69, 58, 0.2);
-  padding: 10px 12px;
-  border-radius: 8px;
-  margin-bottom: 24px;
-  text-align: left;
-  line-height: 1.4;
-  animation: apple-fade-in 0.2s var(--ease);
-}
-
-.login-footer {
-  margin-top: 32px;
-  font-size: 10.5px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 /* User profile button in header */
