@@ -82,7 +82,7 @@ async function createBranch(fullRepo, baseBranch, newBranch) {
 async function updateFile(fullRepo, branch, path, content, message, sha) {
   const { owner, repo } = splitRepo(fullRepo);
 
-  const { data } = await octokit.repos.createOrUpdateFileContents({
+  const params = {
     owner,
     repo,
     path,
@@ -90,8 +90,20 @@ async function updateFile(fullRepo, branch, path, content, message, sha) {
     content: Buffer.from(content, 'utf-8').toString('base64'),
     sha,
     branch,
-  });
+  };
 
+  if (process.env.GIT_AUTHOR_NAME && process.env.GIT_AUTHOR_EMAIL) {
+    params.author = {
+      name: process.env.GIT_AUTHOR_NAME,
+      email: process.env.GIT_AUTHOR_EMAIL
+    };
+    params.committer = {
+      name: process.env.GIT_AUTHOR_NAME,
+      email: process.env.GIT_AUTHOR_EMAIL
+    };
+  }
+
+  const { data } = await octokit.repos.createOrUpdateFileContents(params);
   return data;
 }
 
