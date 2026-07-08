@@ -28,7 +28,7 @@ const client = jwksClient({
   jwksUri: 'https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com',
   cache: true,
   rateLimit: true,
-  jwksRequestsPerMinute: 5
+  jwksRequestsPerMinute: 100
 });
 
 function getKey(header, callback) {
@@ -57,7 +57,8 @@ async function authMiddleware(req, res, next) {
   jwt.verify(token, getKey, {
     audience: projectId,
     issuer: `https://securetoken.google.com/${projectId}`,
-    algorithms: ['RS256']
+    algorithms: ['RS256'],
+    clockTolerance: 60 // 60 seconds tolerance to prevent clock skew errors
   }, (err, decoded) => {
     if (err) {
       console.error('Token verification failed:', err.message);
