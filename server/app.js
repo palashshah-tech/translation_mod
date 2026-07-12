@@ -105,27 +105,50 @@ app.get('/api/projects/:id/translations', async (req, res) => {
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
-    if (!project.translationFile) {
+    if (!project.translationFile && project.format !== 'json-split') {
       return res.status(400).json({
         error: 'No translation file configured',
         note: project.note,
       });
     }
 
-    // Fetch file from GitHub
-    const { content, sha } = await getFileContent(
-      project.repo,
-      project.translationFile,
-      project.branch
-    );
+    let source = {};
+    let target = {};
+    let sha = '';
 
-    // Parse to extract en + jp/ja
-    const { source, target } = parseTranslationFile(
-      content,
-      project.variableName,
-      project.sourceLocale,
-      project.targetLocale
-    );
+    if (project.format === 'json-split') {
+      const sourceRes = await getFileContent(
+        project.repo,
+        project.sourceFile,
+        project.branch
+      );
+      const targetRes = await getFileContent(
+        project.repo,
+        project.targetFile,
+        project.branch
+      );
+      source = JSON.parse(sourceRes.content);
+      target = JSON.parse(targetRes.content);
+      sha = targetRes.sha;
+    } else {
+      // Fetch file from GitHub
+      const { content, sha: fileSha } = await getFileContent(
+        project.repo,
+        project.translationFile,
+        project.branch
+      );
+      sha = fileSha;
+
+      // Parse to extract en + jp/ja
+      const parsed = parseTranslationFile(
+        content,
+        project.variableName,
+        project.sourceLocale,
+        project.targetLocale
+      );
+      source = parsed.source;
+      target = parsed.target;
+    }
 
     // Build a flat list of translation pairs
     const keys = new Set([...Object.keys(source), ...Object.keys(target)]);
@@ -156,7 +179,7 @@ app.get('/api/projects/:id/translations', async (req, res) => {
         name: project.name,
         repo: project.repo,
         branch: project.branch,
-        file: project.translationFile,
+        file: project.format === 'json-split' ? project.targetFile : project.translationFile,
       },
       sha,
       totalKeys: pairs.length,
@@ -184,57 +207,90 @@ app.post('/api/projects/:id/translations', async (req, res) => {
       return res.status(400).json({ error: 'No changes to commit' });
     }
 
-    // Fetch current file to get latest content
-    const { content: currentContent, sha: currentSha } = await getFileContent(
-      project.repo,
-      project.translationFile,
-      project.branch
-    );
+    let updatedContent = '';
+    let targetPath = '';
+    let targetSha = '';
+    let changedKeys = [];
 
-    // Verify SHA matches (optimistic concurrency)
-    if (sha && sha !== currentSha) {
-      return res.status(409).json({
-        error: 'File has been modified since you loaded it. Please refresh and try again.',
-      });
-    }
+    if (project.format === 'json-split') {
+      const { content: currentContent, sha: currentSha } = await getFileContent(
+        project.repo,
+        project.targetFile,
+        project.branch
+      );
 
-    // Parse existing translations
-    const { target } = parseTranslationFile(
-      currentContent,
-      project.variableName,
-      project.sourceLocale,
-      project.targetLocale
-    );
-
-    // Apply updates
-    const mergedTarget = { ...target };
-    const changedKeys = [];
-    for (const [key, value] of Object.entries(updates)) {
-      if (JSON.stringify(mergedTarget[key]) !== JSON.stringify(value)) {
-        mergedTarget[key] = value;
-        changedKeys.push(key);
+      if (sha && sha !== currentSha) {
+        return res.status(409).json({
+          error: 'File has been modified since you loaded it. Please refresh and try again.',
+        });
       }
-    }
 
-    if (changedKeys.length === 0) {
-      return res.status(400).json({ error: 'No actual changes detected' });
-    }
+      const targetJson = JSON.parse(currentContent);
+      const mergedTarget = { ...targetJson };
 
-    // Reconstruct file
-    const updatedContent = reconstructFile(
-      currentContent,
-      project.variableName,
-      project.targetLocale,
-      mergedTarget
-    );
+      for (const [key, value] of Object.entries(updates)) {
+        if (JSON.stringify(mergedTarget[key]) !== JSON.stringify(value)) {
+          mergedTarget[key] = value;
+          changedKeys.push(key);
+        }
+      }
+
+      if (changedKeys.length === 0) {
+        return res.status(400).json({ error: 'No actual changes detected' });
+      }
+
+      updatedContent = JSON.stringify(mergedTarget, null, 2) + '\n';
+      targetPath = project.targetFile;
+      targetSha = currentSha;
+    } else {
+      const { content: currentContent, sha: currentSha } = await getFileContent(
+        project.repo,
+        project.translationFile,
+        project.branch
+      );
+
+      if (sha && sha !== currentSha) {
+        return res.status(409).json({
+          error: 'File has been modified since you loaded it. Please refresh and try again.',
+        });
+      }
+
+      const { target } = parseTranslationFile(
+        currentContent,
+        project.variableName,
+        project.sourceLocale,
+        project.targetLocale
+      );
+
+      const mergedTarget = { ...target };
+      for (const [key, value] of Object.entries(updates)) {
+        if (JSON.stringify(mergedTarget[key]) !== JSON.stringify(value)) {
+          mergedTarget[key] = value;
+          changedKeys.push(key);
+        }
+      }
+
+      if (changedKeys.length === 0) {
+        return res.status(400).json({ error: 'No actual changes detected' });
+      }
+
+      updatedContent = reconstructFile(
+        currentContent,
+        project.variableName,
+        project.targetLocale,
+        mergedTarget
+      );
+      targetPath = project.translationFile;
+      targetSha = currentSha;
+    }
 
     // Commit and open PR
     const result = await commitTranslations({
       fullRepo: project.repo,
       baseBranch: project.branch,
-      filePath: project.translationFile,
+      filePath: targetPath,
       fileContent: updatedContent,
-      fileSha: currentSha,
+      fileSha: targetSha,
       changedKeys,
     });
 

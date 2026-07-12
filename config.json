@@ -23,6 +23,17 @@
       "sourceLocale": "en",
       "targetLocale": "ja",
       "icon": "working-memory"
+    },
+    {
+      "id": "vwm-nf-cda",
+      "name": "VWM Neurofeedback Space Invaders",
+      "description": "Neurofeedback VR task with Space Invaders gameplay mechanics",
+      "repo": "Xiberlinc/VWM-NF-CDA",
+      "branch": "develop",
+      "format": "json-split",
+      "sourceFile": "SpaceInvaders/src/locales/en.json",
+      "targetFile": "SpaceInvaders/src/locales/ja.json",
+      "icon": "xiberlinc"
     }
   ]
 }
