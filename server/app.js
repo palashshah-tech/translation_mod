@@ -91,7 +91,7 @@ app.get('/api/projects', (req, res) => {
     description: p.description,
     repo: p.repo,
     icon: p.icon,
-    hasTranslations: !!p.translationFile,
+    hasTranslations: !!p.translationFile || p.format === 'json-split',
     note: p.note || null,
   }));
   res.json({ projects });
